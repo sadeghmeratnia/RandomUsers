@@ -3,3 +3,7 @@
 
 # Xcode user-specific state
 *.xcuserstate
+
+# Xcode user data (shouldn't be committed)
+*.xcworkspace/xcuserdata/
+*.xcscheme
