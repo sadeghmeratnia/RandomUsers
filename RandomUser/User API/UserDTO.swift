@@ -9,7 +9,8 @@ import Foundation
 
 // MARK: - UserDTO
 
-struct UserDTO: Codable {
+internal struct UserDTO: Codable {
+    var id = UUID()
     let gender: String
     let name: NameDTO
     let email: String
@@ -25,6 +26,7 @@ extension [UserDTO] {
     func toModels() -> [User] {
         map {
             .init(
+                id: $0.id,
                 name: .init(title: $0.name.title, first: $0.name.first, last: $0.name.last),
                 gender: $0.gender,
                 email: $0.email,

@@ -7,7 +7,8 @@
 
 import Foundation
 
-public struct User: Codable {
+public struct User: Equatable {
+    let id: UUID
     let name: Name
     let gender: String
     let email: String
@@ -15,7 +16,8 @@ public struct User: Codable {
     let mobile: String
     let nationality: String
 
-    init(name: Name, gender: String, email: String, phone: String, mobile: String, nationality: String) {
+    init(id: UUID, name: Name, gender: String, email: String, phone: String, mobile: String, nationality: String) {
+        self.id = id
         self.name = name
         self.gender = gender
         self.email = email
@@ -24,7 +26,7 @@ public struct User: Codable {
         self.nationality = nationality
     }
 
-    struct Name: Codable {
+    struct Name: Equatable {
         let title, first, last: String
     }
 }

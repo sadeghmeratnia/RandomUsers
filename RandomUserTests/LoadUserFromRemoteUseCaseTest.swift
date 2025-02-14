@@ -40,70 +40,29 @@ struct LoadUserFromRemoteUseCaseTest {
 
     @Test func load_deliversErrorOnClientError() async {
         let (sut, client) = self.makeSUT()
-        let url = Self.anyURL()
-        let expectedError = RemoteUserLoader.Error.connectivity
 
-        let task = Task {
-            try await sut.load(from: url)
-        }
-
-        await Task.yield()
-
-        await client.complete(with: expectedError)
-
-        do {
-            _ = try await task.value
-        } catch let error as RemoteUserLoader.Error {
-            #expect(error == expectedError)
-        } catch {
-            Issue.record("Unexpected error: \(error)")
+        await expect(sut, toCompleteWith: failure(.unknown)) {
+            let clientError = NSError(domain: "Test", code: 0)
+            await client.complete(with: clientError)
         }
     }
-    
+
     @Test(arguments: [199, 201, 300, 400, 404, 500])
     func load_deliversErrorOnNon200HttpStatusCode(code: Int) async {
         let (sut, client) = self.makeSUT()
-        let url = Self.anyURL()
-        let expectedError = RemoteUserLoader.Error.invalidData
         let json = makeItemJSON([])
-
-        let task = Task {
-            try await sut.load(from: url)
-        }
-
-        await Task.yield()
-
-        await client.complete(withStatusCode: code, data: json)
-
-        do {
-            _ = try await task.value
-        } catch let error as RemoteUserLoader.Error {
-            #expect(error == expectedError)
-        } catch {
-            Issue.record("Expected \(expectedError), got \(error) instead.")
+        
+        await expect(sut, toCompleteWith: failure(.invalidData)) {
+            await client.complete(withStatusCode: code, data: json)
         }
     }
-    
+
     @Test func load_deliversErrorOn200StatusCodeButInvalidJSON() async throws {
         let (sut, client) = self.makeSUT()
-        let url = Self.anyURL()
-        let expectedError = RemoteUserLoader.Error.invalidData
         let json = Data("Invalid JSON".utf8)
 
-        let task = Task {
-            _ = try await sut.load(from: url)
-        }
-
-        await Task.yield()
-
-        await client.complete(withStatusCode: 200, data: json)
-
-        do {
-            _ = try await task.value
-        } catch let error as RemoteUserLoader.Error {
-            #expect(error == expectedError)
-        } catch {
-            Issue.record("Expected \(expectedError), got \(error) instead.")
+        await expect(sut, toCompleteWith: failure(.invalidData)) {
+            await client.complete(withStatusCode: 200, data: json)
         }
     }
 }
@@ -121,10 +80,41 @@ extension LoadUserFromRemoteUseCaseTest {
     private static func anyURL() -> URL {
         URL(string: "any-URL.com")!
     }
-    
+
     private func makeItemJSON(_ items: [[String: Any]]) -> Data {
         let itemsJSON = ["results": items]
         return try! JSONSerialization.data(withJSONObject: itemsJSON)
+    }
+
+    private func expect(_ sut: RemoteUserLoader,
+                        toCompleteWith expectedResult: RemoteUserLoader.Result,
+                        when action: () async -> Void,
+                        _ sourceLocation: SourceLocation = #_sourceLocation) async {
+        let url = Self.anyURL()
+        
+        let task = Task {
+            try await sut.load(from: url)
+        }
+
+        await Task.yield()
+        await action()
+  
+        let receivedResult = await task.result
+        
+        switch (receivedResult, expectedResult) {
+        case let (.success(receivedItems), .success(expectedItems)):
+            #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
+
+        case let (.failure(receivedError), .failure(expectedError)):
+            #expect(receivedError as NSError == expectedError as NSError, sourceLocation: sourceLocation)
+
+        default:
+            Issue.record("Expected \(expectedResult), got \(receivedResult) instead.", sourceLocation: sourceLocation)
+        }
+    }
+
+    private func failure(_ error: RemoteUserLoader.Error) -> RemoteUserLoader.Result {
+        .failure(error)
     }
 }
 
@@ -136,33 +126,32 @@ extension LoadUserFromRemoteUseCaseTest {
             let url: URL
             let completion: CheckedContinuation<T, Error>
         }
-        
+
         private var tasks = [Task<HTTPClientResponse>]()
-        
+
         var requestedURLs: [URL] {
-            tasks.map { $0.url }
+            self.tasks.map { $0.url }
         }
-        
+
         func get(from url: URL) async throws -> HTTPClientResponse {
             try await withCheckedThrowingContinuation { continuation in
                 self.tasks.append(.init(url: url, completion: continuation))
             }
         }
-        
+
         func complete(with error: Error, at index: Int = 0) {
-            guard tasks.indices.contains(index) else { return }
-            tasks[index].completion.resume(throwing: error)
+            guard self.tasks.indices.contains(index) else { return }
+            self.tasks[index].completion.resume(throwing: error)
         }
-        
+
         func complete(withStatusCode code: Int, data: Data, at index: Int = 0) {
-            guard tasks.indices.contains(index) else { return }
+            guard self.tasks.indices.contains(index) else { return }
             let response = HTTPURLResponse(
                 url: tasks[index].url,
                 statusCode: code,
                 httpVersion: nil,
-                headerFields: nil
-            )!
-            tasks[index].completion.resume(returning: (data, response))
+                headerFields: nil)!
+            self.tasks[index].completion.resume(returning: (data, response))
         }
     }
 }

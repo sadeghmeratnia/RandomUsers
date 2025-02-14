@@ -12,6 +12,8 @@ import Foundation
 public final class RemoteUserLoader {
     private let client: HTTPClient
 
+    public typealias Result = Swift.Result<[User], Error>
+
     public enum Error: Swift.Error {
         case connectivity
         case invalidData
@@ -26,8 +28,10 @@ public final class RemoteUserLoader {
         do {
             let result = try await client.get(from: url)
             return try self.map(result.0, from: result.1)
-        } catch {
+        } catch let error as Error {
             throw error
+        } catch {
+            throw Error.unknown
         }
     }
 
