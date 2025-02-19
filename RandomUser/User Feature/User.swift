@@ -8,15 +8,15 @@
 import Foundation
 
 public struct User: Equatable {
-    let id: UUID
-    let name: Name
-    let gender: String
-    let email: String
-    let phone: String
-    let mobile: String
-    let nationality: String
+    public let id: UUID
+    public let name: Name
+    public let gender: String
+    public let email: String
+    public let phone: String
+    public let mobile: String
+    public let nationality: String
 
-    init(id: UUID, name: Name, gender: String, email: String, phone: String, mobile: String, nationality: String) {
+    public init(id: UUID, name: Name, gender: String, email: String, phone: String, mobile: String, nationality: String) {
         self.id = id
         self.name = name
         self.gender = gender
@@ -26,7 +26,13 @@ public struct User: Equatable {
         self.nationality = nationality
     }
 
-    struct Name: Equatable {
-        let title, first, last: String
+    public struct Name: Equatable {
+        public let title, first, last: String
+        
+        public init(title: String, first: String, last: String) {
+            self.title = title
+            self.first = first
+            self.last = last
+        }
     }
 }

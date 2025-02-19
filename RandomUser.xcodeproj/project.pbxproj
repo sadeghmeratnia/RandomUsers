@@ -17,6 +17,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		728495C32D65016D00503127 /* RandomUser.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = RandomUser.xctestplan; sourceTree = "<group>"; };
 		72A2C7842D59FE33008BAEF8 /* RandomUser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RandomUser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		72A2C7952D59FE35008BAEF8 /* RandomUserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RandomUserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -55,6 +56,7 @@
 		72A2C77B2D59FE33008BAEF8 = {
 			isa = PBXGroup;
 			children = (
+				728495C32D65016D00503127 /* RandomUser.xctestplan */,
 				72A2C7862D59FE33008BAEF8 /* RandomUser */,
 				72A2C7982D59FE35008BAEF8 /* RandomUserTests */,
 				72A2C7852D59FE33008BAEF8 /* Products */,
